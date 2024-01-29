@@ -81,6 +81,7 @@ def home(request):
 def room(request, pk):
     room = Room.objects.get(id=pk)
     room_messages = room.message_set.all().order_by('-created')
+    participants = room.participants.all()
 
     if request.method == 'POST':
         message = Message.objects.create(
@@ -90,11 +91,11 @@ def room(request, pk):
         )
         return redirect('room', pk=room.id)
     
-    context = {'room': room, 'room_messages': room_messages}
+    context = {'room': room, 'room_messages': room_messages, 'participants': participants}
     return render(request, 'core/room.html', context)
 
 
-@login_required(Login_url='login')
+@login_required(login_url='login')
 def createRoom(request):
     form = RoomForm()
 
@@ -108,7 +109,7 @@ def createRoom(request):
     return render(request, 'core/room_form.html', context)
 
 
-@login_required(Login_url='login')
+@login_required(login_url='login')
 def updateRoom(request, pk):
     room = Room.objects.get(id=pk)
     form = RoomForm(instance=room)
@@ -126,7 +127,7 @@ def updateRoom(request, pk):
     return render(request, 'core/room_form.html', context)
 
 
-@login_required(Login_url='login')
+@login_required(login_url='login')
 def deleteRoom(request, pk):
     room = Room.objects.get(id=pk)
 
