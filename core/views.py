@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Room, Topic, Message
-from .forms import RoomForm
+from .forms import RoomForm, MessageForm
 
 
 # Create your views here.
@@ -74,13 +74,15 @@ def home(request):
 
     topics = Topic.objects.all()
     room_count = rooms.count()
-    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count}
+    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
+
+    context = {'rooms': rooms, 'topics': topics, 'room_count': room_count, 'room_messages': room_messages}
     return render(request, 'core/home.html', context)
 
 
 def room(request, pk):
     room = Room.objects.get(id=pk)
-    room_messages = room.message_set.all().order_by('-created')
+    room_messages = room.message_set.all()
     participants = room.participants.all()
 
     if request.method == 'POST':
@@ -89,6 +91,7 @@ def room(request, pk):
             room=room,
             body=request.POST.get('body')
         )
+        room.participants.add(request.user)
         return redirect('room', pk=room.id)
     
     context = {'room': room, 'room_messages': room_messages, 'participants': participants}
@@ -137,4 +140,43 @@ def deleteRoom(request, pk):
     if request.method == 'POST':
         room.delete()
         return redirect('home')
-    return render(request, 'core/delete.html', {'obj':room})
+    return render(request, 'core/delete.html', {'obj': room})
+
+
+@login_required(login_url='login')
+def deleteMessage(request, pk):
+    message = Message.objects.get(id=pk)
+
+    if request.user != message.user:
+        return HttpResponse('You are not allowed here!')
+    
+    if request.method == 'POST':
+        message.delete()
+        return redirect('home')
+    return render(request, 'core/delete.html', {'obj': message})
+
+
+@login_required(login_url='login')
+def updateMessage(request, pk):
+    message = Message.objects.get(id=pk)
+    form = MessageForm(instance=message)
+
+    if request.user != message.user:
+        return HttpResponse('You are not allowed here!')
+
+    if request.method == 'POST':
+        form = MessageForm(request.POST, instance=message)
+        if form.is_valid():
+            form.save()
+        return redirect('home')
+
+    context = {'form': form}
+    return render(request, 'core/message_form.html', context)
+
+def userProfile(request, pk):
+    user = User.objects.get(id=pk)
+    rooms = user.room_set.all()
+    room_message = user.message_set.all()
+    topics = Topic.objects.all()
+    context = {'user': user, 'rooms': rooms, 'room_message': room_message, 'topics': topics}
+    return render(request, 'core/profile.html', context)
