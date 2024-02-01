@@ -4,14 +4,43 @@
 
 <form method="GET" action="{% url 'home' %}">
     <input type="text" name="q" placeholder="Search Rooms..."/> 
-
 </form>
 
 {% if request.user.is_authenticated %}
-<p>Hello {{request.user}}</p>
-<a href="{% url 'logout' %}">Logout</a>
+<div class="header__user">
+    <a href="profile.html">
+        <div class="avatar avatar--medium active">
+            <img src="">
+        </div>
+        <p>{{request.user.username}} <span>@{{request.user.username}}</span></p>
+    </a>
+    <!-- <button class="dropdown-button">
+        <svg>
+            <title>chevron-down</title>
+        </svg>
+    </button> -->
+</div>
 {% else %}
-<a href="{% url 'login' %}">Login</a>
+<a href="{% url 'login' %}">
+    <img src="{% static 'images/x.jpg'}" />
+    <p>Login</p>
+</a>
+
 {% endif %}
+
+<div class="dropdown-button">
+    <a href="{% url 'update-user' %}" class="dropdown-link">
+        <svg>
+            <title>tools</title>   
+        </svg>
+    Settings
+    </a>
+</div>
+<a href="{% url 'logout' %}" class="dropdown-link"><svg><title>Logout</title></svg></a>
+
+
+
+
+
 
 <hr>

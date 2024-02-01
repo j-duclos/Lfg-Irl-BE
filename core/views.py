@@ -10,7 +10,7 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Room, Topic, Message
-from .forms import RoomForm, MessageForm
+from .forms import RoomForm, MessageForm, UserForm
 
 
 # Create your views here.
@@ -105,7 +105,9 @@ def createRoom(request):
     if request.method == 'POST':
         form = RoomForm(request.POST)
         if form.is_valid():
-            form.save()
+            room = form.save(commit=False)
+            room.host = request.user
+            room.save()
             return redirect('home')
 
     context = {'form': form}
@@ -173,6 +175,7 @@ def updateMessage(request, pk):
     context = {'form': form}
     return render(request, 'core/message_form.html', context)
 
+
 def userProfile(request, pk):
     user = User.objects.get(id=pk)
     rooms = user.room_set.all()
@@ -180,3 +183,18 @@ def userProfile(request, pk):
     topics = Topic.objects.all()
     context = {'user': user, 'rooms': rooms, 'room_message': room_message, 'topics': topics}
     return render(request, 'core/profile.html', context)
+
+
+@login_required(login_url='login')
+def updateUser(request):
+    user = request.user
+    form = UserForm(instance=user)
+
+    if request.method == 'POST':
+        form = UserForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            redirect('user-profile', pk=user.id)
+
+    context = { 'form': form }
+    return render(request, 'core/update-user.html', context)

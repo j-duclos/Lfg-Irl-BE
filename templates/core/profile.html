@@ -1,10 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}
-
-
-{% endblock %}
-
+{% block title %}User Profile{% endblock %}
 
 {% block content %}
 
@@ -19,13 +15,13 @@
 
 <div class="profile-container">
     <div>
-        {% include 'core/topics_component.html' %}
+        {% include 'core/components/topics_component.html' %}
     </div>
     <div>
-        {% include 'core/feed_component.html' %}
+        {% include 'core/components/feed_component.html' %}
     </div>
     <div>
-        {% include 'core/activity_component.html' %}
+        {% include 'core/components/activity_component.html' %}
     </div>
 </div>
 
